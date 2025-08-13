@@ -8,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,10 +20,15 @@ public class Server {
             "/events.html", "/events.js");
     ExecutorService executorService;
 
-
+    private List<List> handlers=new ArrayList();
 
     public Server(int numberOfThreads) {
         executorService = Executors.newFixedThreadPool(numberOfThreads);
+    }
+
+    private static Path getPath(String path) {
+        final var filePath = Path.of(".", "public", path);
+        return filePath;
     }
 
     public void start(int port) {
@@ -54,6 +60,15 @@ public class Server {
                 out.flush();
                 return;
             }
+
+
+
+            for (List handler:handlers){
+                if(handler.contains(parts[0])){
+                    return handler.get(2);
+                }
+            }
+
             final var filePath = getPath(path);
             final var mimeType = Files.probeContentType(filePath);
             if (path.equals("/classic.html")) {
@@ -72,8 +87,6 @@ public class Server {
             Files.copy(filePath, out);
             out.flush();
 
-            Request request=new Request(path);
-            request.setParams(mimeType+" "+length);
 
 
         } catch (IOException e) {
@@ -81,8 +94,7 @@ public class Server {
         }
     }
 
-    private static Path getPath(String path) {
-        final var filePath = Path.of(".", "public", path);
-        return filePath;
+    public void addHandler(String method, String path, Handler handler){
+    handlers.add(List.of(method,path,handler));
     }
 }
