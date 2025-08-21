@@ -9,28 +9,25 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.List;
 
 public class Server {
-    final List<String> validPaths = List.of("/index.html", "/spring.svg", "/spring.png",
-            "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html",
-            "/events.html", "/events.js");
+    public static final String GET= "GET";
+    public static final String POST="POST";
     ExecutorService executorService;
-
     private List<List> handlers=new ArrayList();
 
     public Server(int numberOfThreads) {
         executorService = Executors.newFixedThreadPool(numberOfThreads);
     }
-
     private static Path getPath(String path) {
         final var filePath = Path.of(".", "public", path);
         return filePath;
     }
-
     public void start(int port) {
         try (final var serverSocket = new ServerSocket(port)) {
             while (true) {
@@ -44,8 +41,8 @@ public class Server {
 
 
     private void connectionProcessing(Socket socket) {
-        try (final var in = new BufferedReader(new
-                InputStreamReader(socket.getInputStream()));
+        try (final var in = new BufferedReader(
+             new InputStreamReader(socket.getInputStream()));
              final var out = new BufferedOutputStream(socket.getOutputStream())
         ) {
             final var requestLine = in.readLine();
@@ -54,40 +51,23 @@ public class Server {
                 return;
             }
             final var path = parts[1];
-            if (!validPaths.contains(path)) {
-                out.write((""
-                ).getBytes());
-                out.flush();
-                return;
-            }
-
-
-
-            for (List handler:handlers){
-                if(handler.contains(parts[0])){
-                    return handler.get(2);
-                }
+            if (path=="/messages") {
+                
             }
 
             final var filePath = getPath(path);
             final var mimeType = Files.probeContentType(filePath);
-            if (path.equals("/classic.html")) {
-                final var template = Files.readString(filePath);
-                final var content = template.replace(
-                        "", "").getBytes();
-                out.write((
-                        "").getBytes());
-                out.write(content);
-                out.flush();
-                return;
-            }
             final var length = Files.size(filePath);
-            out.write((
-                    "").getBytes());
-            Files.copy(filePath, out);
-            out.flush();
 
-
+            Request request=new Request(parts[0],mimeType+" "+length," ");
+            for(List handler:handlers){
+                if (handler.contains(request.getMethod())){
+                    Handler handler1= (Handler) handler.get(2);
+                    handler1.handle(request,out);
+                }
+            }
+            System.out.println(request.getQueryParams());
+            request.getQueryParam("length");
 
         } catch (IOException e) {
             e.printStackTrace();
