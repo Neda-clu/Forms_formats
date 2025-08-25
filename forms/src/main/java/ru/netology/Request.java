@@ -22,6 +22,10 @@ public class Request {
 
     public String getMethod(){return method;}
 
+    public String getHeaders() {
+        return headers;
+    }
+
     public String getQueryParam(String name) {
         List<NameValuePair> params = URLEncodedUtils.parse(headers, StandardCharsets.UTF_16);
         for (NameValuePair nameValuePair : params) {

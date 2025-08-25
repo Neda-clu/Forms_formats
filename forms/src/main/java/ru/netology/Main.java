@@ -10,16 +10,22 @@ public class Main {
 
     server.addHandler("GET", "/messages", new Handler(){
           public void handle(Request request, BufferedOutputStream responseStream) {
-              // TODO: handlers code
+              responseStream.write(("HTTP/1.1 200 OK\r\n"+
+                      "Content:"+request.getHeaders+"\r\n"+
+                      "Connection : close \r\n").getbytes());
+              responseStream.flush
           }
       });
 
 
       server.addHandler("POST", "/messages", new Handler(){
           public void handle(Request request, BufferedOutputStream responseStream) {
-              // TODO: handlers code
-          }
-      });
+              public void handle(Request request, BufferedOutputStream responseStream) {
+                  responseStream.write(("HTTP/1.1 200 OK\r\n"+
+                          "Content:"+request.getHeaders+"\r\n"+
+                          "Connection : close \r\n").getbytes());
+                  responseStream.flush
+              });
 
       server.listen(9999);
   }
